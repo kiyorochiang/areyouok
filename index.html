@@ -140,8 +140,6 @@
         <!-- 🛏️ 床 -->
         <div class="hotspot" data-label="🛏️ 床" style="top: 73%; left: 45%; width: 45%; height: 25%;" onclick="inspect('bed')"></div>
     
-        <!-- 離開按鈕 -->
-        <button class="exit-room-btn" style="bottom: 50px;" onclick="exitRoom()">（結束自省，準備迎接明天）</button>
     </div>
 
     <div id="breathing-overlay" onmousedown="startInhale()" onmouseup="startExhale()" ontouchstart="startInhale()" ontouchend="startExhale()">
@@ -162,8 +160,55 @@
         <div id="choices-box" onclick="event.stopPropagation()"></div>
     </div>
 </div>
+    
 
 <script>
+    // 定義所有需要預載的圖片路徑
+const imageUrls = [
+    'hallway.jpg',
+    'lab.jpg',
+    'hallway2.jpg',
+    'HOME.JPG', // 確保大小寫與檔案完全一致
+    'black' // 雖然 black 是顏色，但我們可以保留邏輯
+];
+
+let loadedImages = 0;
+const totalImages = imageUrls.filter(url => url !== 'black').length;
+
+function preloadImages() {
+    const startBtn = document.querySelector('#start-screen .choice-btn');
+    const titleSub = document.querySelector('.title-sub');
+    
+    // 暫時禁用開始按鈕，並顯示進度
+    startBtn.disabled = true;
+    startBtn.innerText = "資源讀取中... 0%";
+
+    imageUrls.forEach(url => {
+        if (url === 'black') return;
+        
+        const img = new Image();
+        img.src = url;
+        img.onload = () => {
+            loadedImages++;
+            let progress = Math.floor((loadedImages / totalImages) * 100);
+            startBtn.innerText = `讀取中... ${progress}%`;
+            
+            if (loadedImages === totalImages) {
+                startBtn.disabled = false;
+                startBtn.innerText = "進入遊戲";
+                startBtn.style.background = "var(--p-family)";
+            }
+        };
+        img.onerror = () => {
+            console.error(`圖片載入失敗: ${url}`);
+            loadedImages++; // 失敗也繼續，避免遊戲卡死
+        };
+    });
+}
+
+// 網頁開啟後自動開始預載
+window.onload = preloadImages;
+    
     let gameState = { stress: 30, currentKey: 'start', mode: 'story', breathStep: 0, musicStarted: false };
 
     const script = {
@@ -361,24 +406,51 @@
         }
     }
 
-    function enterRoomMode() {
-        gameState.mode = 'room';
-        document.getElementById('hotspots-layer').style.display = 'block';
-        const spots = document.querySelectorAll('.hotspot');
-        spots.forEach((s, i) => {
-            setTimeout(() => {
-                s.style.background = "rgba(255, 255, 255, 0.4)";
-                setTimeout(() => { s.style.background = ""; }, 600);
-            }, i * 300); 
-        });
-    }
+        function enterRoomMode() {
+            gameState.mode = 'room';
+            document.getElementById('hotspots-layer').style.display = 'block';
+            
+            // 初始化房間對話框
+            document.getElementById('name-label').innerText = "內心獨白";
+            document.getElementById('text-body').innerText = "回到房間，反鎖房門。試著點擊房間的物品，聽聽內心的聲音。";
+            
+            const box = document.getElementById('choices-box');
+            box.innerHTML = '';
+            const exitBtn = document.createElement('button');
+            exitBtn.className = 'choice-btn';
+            exitBtn.innerHTML = "（直接休息，準備迎接明天）";
+            exitBtn.onclick = (e) => { e.stopPropagation(); exitRoom(); };
+            box.appendChild(exitBtn);
+        
+            // 熱點閃爍效果
+            const spots = document.querySelectorAll('.hotspot');
+            spots.forEach((s, i) => {
+                setTimeout(() => {
+                    s.style.background = "rgba(255, 255, 255, 0.3)";
+                    setTimeout(() => { s.style.background = ""; }, 600);
+                }, i * 200); 
+            });
+        }
 
     function inspect(objKey) {
         document.getElementById('name-label').innerText = "內心自省";
         document.getElementById('text-body').innerText = objectDialogues[objKey]();
-        const btn = document.querySelector('.exit-room-btn');
-        btn.style.boxShadow = "0 0 40px #fff";
-        setTimeout(() => { btn.style.boxShadow = ""; }, 500);
+        
+        // 取得選項盒子
+        const box = document.getElementById('choices-box');
+        box.innerHTML = ''; // 清空舊選項
+        
+        // 建立「結束自省」的選項按鈕
+        const exitBtn = document.createElement('button');
+        exitBtn.className = 'choice-btn';
+        exitBtn.style.border = "1px dashed rgba(85, 239, 196, 0.5)"; // 給它一個特別的虛線框
+        exitBtn.innerHTML = "（結束自省，準備迎接明天）";
+        exitBtn.onclick = (e) => {
+            e.stopPropagation(); // 防止觸發 handleNext
+            exitRoom();
+        };
+        
+        box.appendChild(exitBtn);
     }
 
     function exitRoom() {
