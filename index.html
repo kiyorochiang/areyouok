@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>你還好嗎？：體感互動敘事版</title>
+    <title>你還好嗎？</title>
     <style>
         :root {
             --box-bg: rgba(10, 10, 15, 0.95);
@@ -103,10 +103,26 @@
     <div id="audio-control" onclick="toggleMusic(event)">🎵</div>
 
     <div id="hotspots-layer">
-        <div class="hotspot" data-label="💻 電腦" style="top: 50%; left: 39%; width: 10%; height: 14%;" onclick="inspect('pc')"></div>
+        <!-- 🚪 房門 -->
+        <div class="hotspot" data-label="🚪 房門" style="top: 10%; left: 0%; width: 10%; height: 80%;" onclick="inspect('door')"></div>
+        
+        <!-- 👔 衣櫃 -->
+        <div class="hotspot" data-label="👔 衣櫃" style="top: 10%; left: 14%; width: 21%; height: 85%;" onclick="inspect('closet')"></div>
+        
+        <!-- 🤖 機器人模型 -->
+        <div class="hotspot" data-label="🤖 機器人模型" style="top: 36%; left: 44%; width: 6%; height: 8%;" onclick="inspect('robot')"></div>
+        
+        <!-- 💻 電腦 -->
+        <div class="hotspot" data-label="💻 電腦" style="top: 50%; left: 39%; width: 12%; height: 16%;" onclick="inspect('pc')"></div>
+        
+        <!-- 🕒 時鐘 -->
+        <div class="hotspot" data-label="🕒 時鐘" style="top: 8%; left: 56%; width: 10%; height: 18%;" onclick="inspect('clock')"></div>
+        
+        <!-- 🛏️ 床 -->
         <div class="hotspot" data-label="🛏️ 床舖" style="top: 73%; left: 45%; width: 45%; height: 25%;" onclick="inspect('bed')"></div>
-        <div class="hotspot" data-label="🚪 房門" style="top: 5%; left: 0%; width: 10%; height: 90%;" onclick="inspect('door')"></div>
-        <button class="exit-room-btn" onclick="exitRoom()">（結束自省，準備迎接明天）</button>
+    
+        <!-- 離開按鈕 -->
+        <button class="exit-room-btn" style="bottom: 50px;" onclick="exitRoom()">（結束自省，準備迎接明天）</button>
     </div>
 
     <div id="breathing-overlay" onmousedown="startInhale()" onmouseup="startExhale()" ontouchstart="startInhale()" ontouchend="startExhale()">
@@ -134,7 +150,7 @@
     const script = {
         'start': {
             name: '指導教授', color: 'var(--p-teacher)',
-            text: '「離截止日期沒幾天了，這份初稿的質量...你自己清楚。再不努力，今年你絕對<span class="keyword">沒辦法畢業</span>。」',
+            text: '「離截止日期沒幾天了，這份初稿的品質...你自己清楚。再不努力，今年你絕對<span class="keyword">沒辦法畢業</span>。」',
             bg: 'hallway.jpg', shake: 'heavy',
             choices: [
                 { text: '「對不起...我會再回去修改。」', next: 'transition_to_lab', stress: 15 },
@@ -275,7 +291,10 @@
     const objectDialogues = {
         pc: () => (gameState.stress > 60 ? "「滿螢幕的論文資料，我卻連對身邊的人說實話都做不到。」" : "「電腦螢幕亮著。似乎感覺能再寫一點點了。」"),
         bed: () => (gameState.stress > 70 ? "「好想一直睡下去，床是我唯一的安全區。」" : "「躺在床上，感受到被子的重量。這是目前唯一能放鬆的地方。」"),
-        door: () => (gameState.stress > 50 ? "「門把很冷。只要我不打開它，外面的世界就傷害不到我……但也沒人救得了我。」" : "「門就在那裡。深吸一口氣，或許明天我有勇氣打開它。」")
+        door: () => (gameState.stress > 50 ? "「門把很冷。只要我不打開它，外面的世界就傷害不到我……但也沒人救得了我。」" : "「門就在那裡。深吸一口氣，或許明天我有勇氣打開它。」"),
+        robot: () => (gameState.stress > 55 ? "「看著它被關在零件拼湊的軀殼裡。我也像它一樣，只能展示設定好的樣子給別人看，真實的心情卻無處揭露。」" : "「這是我一塊塊拼湊起來的。雖然生活很混亂，但至少在這裡，我能親手建立起秩序。」"),
+        clock: () => (gameState.stress > 60 ? "「秒針走動的聲音好響，像是在倒數我崩潰的時間。」" : "「已經這個時間了啊……沒關係，慢慢來，找回自己的節奏就好。」"),
+        closet: () => (gameState.stress > 50 ? "「衣櫃裡掛滿了應付各種場合的衣服。有時候覺得，我也只是在不同的標籤下切換外殼，卻忘了裡面那個真實的自己長什麼樣子。」" : "「關上櫃門。這裡收納了我的雜物，也收納了我暫時不想面對的那些瑣碎。」")
     };
 
     function startGame() {
