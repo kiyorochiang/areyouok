@@ -137,9 +137,6 @@
         <!-- ☁️ 窗簾 -->
         <div class="hotspot" data-label="☁️ 窗簾" style="top: 5%; left: 76%; width: 20%; height: 60%;" onclick="inspect('curtain')"></div>
        
-        <!-- 🛏️ 床 -->
-        <div class="hotspot" data-label="🛏️ 床" style="top: 73%; left: 45%; width: 45%; height: 25%;" onclick="inspect('bed')"></div>
-    
     </div>
 
     <div id="breathing-overlay" onmousedown="startInhale()" onmouseup="startExhale()" ontouchstart="startInhale()" ontouchend="startExhale()">
@@ -354,7 +351,6 @@ window.onload = preloadImages;
 
     const objectDialogues = {
         pc: () => (gameState.stress > 60 ? "「滿螢幕的論文資料，我卻連對身邊的人說實話都做不到。」" : "「電腦螢幕亮著。似乎感覺能再寫一點點了。」"),
-        bed: () => (gameState.stress > 70 ? "「好想一直睡下去，床是我唯一的安全區。」" : "「躺在床上，感受到被子的重量。這是目前唯一能放鬆的地方。」"),
         door: () => (gameState.stress > 50 ? "「門把很冷。只要我不打開它，外面的世界就傷害不到我……但也沒人救得了我。」" : "「門就在那裡。深吸一口氣，或許明天我有勇氣打開它。」"),
         robot: () => (gameState.stress > 55 ? "「看著它被關在零件拼湊的軀殼裡。我也像它一樣，只能展示設定好的樣子給別人看，真實的心情卻無處揭露。」" : "「這是我一塊塊拼湊起來的。雖然生活很混亂，但至少在這裡，我能親手建立起秩序。」"),
         clock: () => (gameState.stress > 60 ? "「秒針走動的聲音好響，像是在倒數我崩潰的時間。」" : "「已經這個時間了啊……沒關係，慢慢來，找回自己的節奏就好。」"),
