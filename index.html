@@ -410,7 +410,7 @@
         if (gameState.breathStep >= 3) {
             setTimeout(() => {
                 document.getElementById('breathing-overlay').style.display = 'none';
-                gameState.stress -= 40;
+                gameState.stress -= 30;
                 if (gameState.returnKey) {
                     let next = gameState.returnKey;
                     gameState.returnKey = null;
