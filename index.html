@@ -151,7 +151,7 @@
         breathStep: 0, 
         musicStarted: false,
         returnKey: null,
-        hasForcedCounseling: false 
+        hasVisitedCounseling: false // ✨ 追蹤是否已經去過諮商室一次
     };
 
     const script = {
@@ -164,24 +164,32 @@
                 { text: '「老師，我真的已經到極限了。」', next: 'teacher_empathy', stress: 5 }
             ]
         },
-        'teacher_empathy': { name: '指導教授', color: 'var(--p-teacher)', text: '教授沈默許久：「...你臉色很差。今天先回去吧。」', bg: 'hallway.jpg', next: 'transition_to_lab' },
-        'transition_to_lab': { name: '內心獨白', color: '#666', text: '深夜一點的研究室，飲水機運轉的聲音在安靜的空間裡顯得很刺耳。', bg: 'black', next: 'senior_scene' },
+        'teacher_empathy': {
+            name: '指導教授', color: 'var(--p-teacher)',
+            text: '教授沈默許久，嘆了口氣：「...你臉色很差。今天先回去吧，休息也是研究的一部分。」',
+            bg: 'hallway.jpg', next: 'transition_to_lab'
+        },
+        'transition_to_lab': {
+            name: '內心獨白', color: '#666',
+            text: '（畫面黑屏閃爍）<br>深夜一點的研究室，不遠處還亮著燈的那個座位。飲水機運轉的聲音在安靜的空間裡顯得很刺耳。',
+            bg: 'black', next: 'senior_scene'
+        },
         'senior_scene': {
             name: '學長', color: 'var(--p-senior)',
-            text: '學長轉過頭：「還在弄喔？你那個變項處理得怎麼樣了？」',
+            text: '學長轉過頭，看到你還盯著螢幕：<br>「還在弄喔？我剛剛終於把數據跑完了，結果顯著到不行！對了，你那個變項，我上次聽你說還在卡關，現在處理得怎麼樣了？」',
             bg: 'lab.jpg',
             choices: [
-                { text: '「沒事啦，我快弄好了。」', next: 'senior_reply_stubborn', stress: 10 },
-                { text: '「其實……我好像真的搞砸了。」', next: 'senior_reply_honest', stress: -10 },
-                { text: '（冷冷地回）「不用，我自己會處理。」', next: 'senior_reply_cold', stress: 20 }
+                { text: '「沒事啦，我快弄好了，你先回去休息吧。」', next: 'senior_reply_stubborn', stress: 10 },
+                { text: '「其實……我現在連基本的邏輯都對不起來，我好像真的搞砸了。」', next: 'senior_reply_honest', stress: -10 },
+                { text: '（冷冷地回）「不用，我自己的東西我自己會處理。」', next: 'senior_reply_cold', stress: 20 }
             ]
         },
-        'senior_reply_stubborn': { name: '學長', color: 'var(--p-senior)', text: '「硬撐一定不是好解方！早點休息吧。」', bg: 'lab.jpg', next: 'night_gf' },
-        'senior_reply_honest': { name: '學長', color: 'var(--p-senior)', text: '「不要急，我來幫你看看。有時候跳出來就通了。」', bg: 'lab.jpg', next: 'night_gf' },
-        'senior_reply_cold': { name: '學長', color: 'var(--p-senior)', text: '「...好吧，那你自己保重。」', bg: 'lab.jpg', next: 'night_gf' },
+        'senior_reply_stubborn': { name: '學長', color: 'var(--p-senior)', text: '學長看穿了你的逞強，拍了拍你的肩膀：「我也經歷過你現在經歷過的，硬撐一定不是好解方！早點休息吧。」', bg: 'lab.jpg', next: 'night_gf' },
+        'senior_reply_honest': { name: '學長', color: 'var(--p-senior)', text: '學長拉了張椅子坐下，語氣溫和地說：「不要急，我來幫你看看。有時候只是卡在一個小地方，跳出來就通了。」', bg: 'lab.jpg', next: 'night_gf' },
+        'senior_reply_cold': { name: '學長', color: 'var(--p-senior)', text: '學長愣了一下，隨即嘆了口氣，搖搖頭轉回自己的螢幕：「...好吧，那你自己保重。」', bg: 'lab.jpg', next: 'night_gf' },
         'night_gf': {
             name: '女朋友', color: 'var(--p-gf)',
-            text: '（走出教學大樓，手機響起）「親愛的，別太累了，好嗎？」',
+            text: '（走出教學大樓，手機響起）「親愛的，你在哪？我點了宵夜寄到宿舍了。別太累了，好嗎？」',
             bg: 'hallway2.jpg',
             choices: [
                 { text: '「謝謝妳，我現在就回去。」', next: 'hallway_transition', stress: -20 },
@@ -190,17 +198,17 @@
         },
         'day_friend': {
             name: '朋友 A', color: 'var(--p-friend)',
-            text: '「嘿！這週末大家要一起去打球，你也來吧？」',
+            text: '（走在校園路上遇到朋友）「嘿！這週末大家要一起去打球，你也來吧？別老是悶著，腦袋會壞掉的！」',
             bg: 'HOME.jpg',
             choices: [
-                { text: '「走吧，我真的需要抒發一下。」', next: 'friend_empathy', stress: -20 },
+                { text: '「走吧，我真的需要流點汗抒發一下。」', next: 'friend_empathy', stress: -20 },
                 { text: '「我考慮看看...進度有點趕。」', next: 'friend_consider', stress: 5 },
-                { text: '「你們去就好，我真的沒空。」', next: 'friend_reject', stress: 15 }
+                { text: '「你們去就好，我真的沒空。（冷漠）」', next: 'friend_reject', stress: 15 }
             ]
         },
-        'friend_empathy': { name: '朋友 A', color: 'var(--p-friend)', text: '「這才對嘛！人生除了論文還有很多好玩的事情。」', bg: 'HOME.jpg', next: 'hallway_transition' },
-        'friend_consider': { name: '朋友 A', color: 'var(--p-friend)', text: '「好吧，如果真的撐不住隨時打給我。」', bg: 'HOME.jpg', next: 'hallway_transition' },
-        'friend_reject': { name: '朋友 A', color: 'var(--p-friend)', text: '「...喔好啦，那你自己保重。」', bg: 'HOME.jpg', next: 'hallway_transition' },
+        'friend_empathy': { name: '朋友 A', color: 'var(--p-friend)', text: '「這才對嘛！人生除了論文還有很多好玩的事情。等下打完球去吃頓火鍋，我請客！」', bg: 'HOME.jpg', next: 'hallway_transition' },
+        'friend_consider': { name: '朋友 A', color: 'var(--p-friend)', text: '「好吧，球場永遠為你留個位置。如果真的撐不住隨時打給我，兄弟都在。」', bg: 'HOME.jpg', next: 'hallway_transition' },
+        'friend_reject': { name: '朋友 A', color: 'var(--p-friend)', text: '朋友愣了一下，有些尷尬地抓抓頭：「...喔好啦，那你自己保重。有事再說吧。」', bg: 'HOME.jpg', next: 'hallway_transition' },
         'hallway_transition': {
             name: '內心獨白', color: '#ccc',
             text: '路過諮詢室門口。這是我最後的<span class="keyword">求救</span>機會嗎？',
@@ -212,7 +220,7 @@
         },
         'hallway_transition_heavy': {
             name: '生理警訊', color: 'var(--danger)',
-            text: '心跳快到讓你感到胸口發悶，視線在走廊燈光下顯得模糊。回過神時，你倒在諮商室門口的長椅上。',
+            text: '心跳快到讓你感到胸口發悶，視線在走廊燈光下顯得模糊。回過神時，你倒在諮商室門口的長椅上。裡面的諮商師推開門：『你還好嗎？進來先找回呼吸吧。』',
             bg: 'hallway.jpg', shake: 'heavy',
             choices: [
                 { text: '（推門進去...我真的需要呼吸）', next: 'breath_start', stress: 0 }
@@ -225,12 +233,12 @@
         },
         'enter_room_mode': {
             name: '內心獨白', color: '#666',
-            text: '回到房間，反鎖房門。試著點擊房間的物品。',
+            text: '回到房間，反鎖房門。試著點擊房間的物品，聽聽內心的聲音。',
             bg: 'HOME.jpg', isRoomMode: true
         },
         'family_call': {
             name: '媽媽', color: 'var(--p-family)',
-            text: '「兒子呀，最近壓力很大嗎？不開心就回家。」',
+            text: '（電話響起）「兒子呀，最近壓力很大嗎？不開心就回家。學業再重要，都沒有你的健康重要。」',
             bg: 'HOME.jpg',
             choices: [
                 { text: '「媽...我真的好累...」', next: 'family_empathy', stress: -30 },
@@ -238,9 +246,9 @@
                 { text: '「不要一直煩我！」', next: 'family_conflict', stress: 25 }
             ]
         },
-        'family_empathy': { name: '媽媽', color: 'var(--p-family)', text: '「傻孩子，回家媽媽煮你最愛的。」', bg: 'HOME.jpg', next: 'final_choice' },
-        'family_mask': { name: '媽媽', color: 'var(--p-family)', text: '「...好吧，那你記得吃點有營養的。」', bg: 'HOME.jpg', next: 'final_choice' },
-        'family_conflict': { name: '媽媽', color: 'var(--p-family)', text: '「對不起...媽媽只是擔心你。」', bg: 'HOME.jpg', next: 'final_choice' },
+        'family_empathy': { name: '媽媽', color: 'var(--p-family)', text: '「傻孩子，累了就哭出來。這週末我們先回家吃頓飯，媽媽煮你最愛的紅燒肉。」', bg: 'HOME.jpg', next: 'final_choice' },
+        'family_mask': { name: '媽媽', color: 'var(--p-family)', text: '「...好吧，那你記得吃點有營養的。如果真的撐不住，隨時打給媽媽。」', bg: 'HOME.jpg', next: 'final_choice' },
+        'family_conflict': { name: '媽媽', color: 'var(--p-family)', text: '「對不起...媽媽只是擔心你。你先忙吧...」', bg: 'HOME.jpg', next: 'final_choice' },
         'final_choice': {
             name: '內心獨白', color: '#ccc',
             text: '明天就是截止日。看著桌上的提神飲料，你決定...',
@@ -260,12 +268,12 @@
 
     const objectDialogues = {
         pc: () => (gameState.stress > 60 ? "「滿螢幕的論文資料，我卻連對身邊的人說實話都做不到。」" : "「電腦螢幕亮著。似乎感覺能再寫一點點了。」"),
-        door: () => (gameState.stress > 50 ? "「門把很冷。只要我不打開它，外面的世界就傷害不到我。」" : "「門就在那裡。或許明天我有勇氣打開它。」"),
-        robot: () => (gameState.stress > 55 ? "「看著它被關在零件拼湊的軀殼裡。我也像它一樣。」" : "「雖然生活很混亂，但至少這裡我有秩序。」"),
-        clock: () => (gameState.stress > 60 ? "「秒針走動的聲音好響，像是在倒數我崩潰的時間。」" : "「已經這個時間了啊……慢慢來就好。」"),
-        books: () => (gameState.stress > 60 ? "「我讀了這麼多理論，卻還是沒辦法分析出自己的狀態。」" : "「翻開書本，知識總能帶給我一點踏實感。」"),
-        curtain: () => (gameState.stress > 50 ? "「拉上窗簾，我就能暫時斷絕與外界的所有連結。」" : "「窗外透進一點微弱的街燈。明天試著拉開它吧。」"),
-        closet: () => (gameState.stress > 50 ? "「衣櫃裡掛滿了應付各種場合的衣服。我忘了真實的自己長什麼樣子。」" : "「關上櫃門。這裡收納了我的雜物與瑣碎。」")
+        door: () => (gameState.stress > 50 ? "「門把很冷。只要我不打開它，外面的世界就傷害不到我……但也沒人救得了我。」" : "「門就在那裡。深吸一口氣，或許明天我有勇氣打開它。」"),
+        robot: () => (gameState.stress > 55 ? "「看著它被關在零件拼湊的軀殼裡。我也像它一樣，只能展示設定好的樣子給別人看，真實的心情卻無處揭露。」" : "「這是我一塊塊拼湊起來的。雖然生活很混亂，但至少在這裡，我能親手建立起秩序。」"),
+        clock: () => (gameState.stress > 60 ? "「秒針走動的聲音好響，像是在倒數我崩潰的時間。」" : "「已經這個時間了啊……沒關係，慢慢來，找回自己的節奏就好。」"),
+        books: () => (gameState.stress > 60 ? "「《研究方法》... 我讀了這麼多理論，卻還是沒辦法分析出自己現在的心理狀態。」" : "「翻開書本，雖然論文進度緩慢，但知識總能帶給我一點踏實感。」"),
+        curtain: () => (gameState.stress > 50 ? "「拉上窗簾，我就能暫時斷絕與外界的所有連結，不用再向任何人揭露我的疲憊。」" : "「窗外透進一點微弱的街燈光。或許明天，我應該試著把這層屏障拉開。」"),
+        closet: () => (gameState.stress > 50 ? "「衣櫃裡掛滿了應付各種場合的衣服。有時候覺得，我也只是在不同的標籤下切換外殼，卻忘了裡面那個真實的自己長什麼樣子。」" : "「關上櫃門。這裡收納了我的雜物，也收納了我暫時不想面對的那些瑣碎。」")
     };
 
     function startGame() {
@@ -278,17 +286,26 @@
     function render(key) {
         if (key.startsWith('END_')) return showEnd(key);
 
-        // --- 核心改動：轉場攔截邏輯 ---
-        // 只有當 key 為重大轉場點（night_gf, day_friend, hallway_transition, enter_room_mode）時才攔截
+        // --- 重大轉場點拦截 (壓力大於75且從未去過諮商室) ---
         const majorTransitions = ['night_gf', 'day_friend', 'hallway_transition', 'enter_room_mode'];
-        if (gameState.stress >= 75 && !gameState.hasForcedCounseling && majorTransitions.includes(key)) {
-            gameState.hasForcedCounseling = true;
+        if (gameState.stress >= 75 && !gameState.hasVisitedCounseling && majorTransitions.includes(key)) {
             gameState.returnKey = key;
             key = 'hallway_transition_heavy';
         }
 
+        // --- 修正：如果已經去過諮商室，路過時自動跳過選擇 ---
+        if (key === 'hallway_transition' && gameState.hasVisitedCounseling) {
+            key = 'enter_room_mode';
+        }
+
         gameState.currentKey = key;
         const sc = script[key];
+        
+        // 標記諮商室已啟動
+        if (sc.isBreathGame) {
+            gameState.hasVisitedCounseling = true;
+        }
+
         if (sc.isRoomMode) enterRoomMode();
 
         const stage = document.getElementById('game-stage');
@@ -303,7 +320,11 @@
         document.getElementById('name-label').style.backgroundColor = sc.color || '#333';
         document.getElementById('text-body').innerHTML = sc.text;
 
-        if (sc.isBreathGame) { document.getElementById('breathing-overlay').style.display = 'flex'; gameState.breathStep = 0; }
+        if (sc.isBreathGame) { 
+            document.getElementById('breathing-overlay').style.display = 'flex'; 
+            gameState.breathStep = 0; 
+            document.getElementById('breath-count').innerText = `練習進度：0 / 3`;
+        }
 
         const box = document.getElementById('choices-box');
         box.innerHTML = '';
@@ -325,7 +346,7 @@
         gameState.mode = 'room';
         document.getElementById('hotspots-layer').style.display = 'block';
         document.getElementById('name-label').innerText = "內心獨白";
-        document.getElementById('text-body').innerText = "回到房間，反鎖房門。試著點擊房間的物品。";
+        document.getElementById('text-body').innerText = "回到房間，反鎖房門。試著點擊房間的物品，聽聽內心的聲音。";
         const box = document.getElementById('choices-box');
         box.innerHTML = '';
         const exitBtn = document.createElement('button');
@@ -385,8 +406,7 @@
         if (gameState.breathStep >= 3) {
             setTimeout(() => {
                 document.getElementById('breathing-overlay').style.display = 'none';
-                // 諮商減壓值改為 30
-                gameState.stress -= 30;
+                gameState.stress -= 30; // 減壓改為30
                 if (gameState.returnKey) {
                     let next = gameState.returnKey;
                     gameState.returnKey = null;
