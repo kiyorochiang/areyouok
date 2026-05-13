@@ -57,24 +57,30 @@
         
         .exit-room-btn {
             position: absolute;
-            bottom: 260px; /* 剛好在對話框上方 */
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 12px 30px;
-            background: rgba(10, 10, 15, 0.8);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            border-radius: 30px;
+            top: 30px;   
+            right: 30px;  
+            bottom: auto; 
+            left: auto;  
+            transform: none; 
+            
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.2); /* 淺色半透明 */
+            border: 1px solid rgba(255, 255, 255, 0.6);
             color: #fff;
-            font-weight: bold;
-            cursor: pointer;
-            z-index: 100; /* 強制置頂 */
-            backdrop-filter: blur(5px);
+            font-size: 0.9rem;
+            border-radius: 5px;
+            z-index: 150; /* 確保高於所有熱點與對話框 */
+            backdrop-filter: blur(10px);
+            transition: 0.3s;
         }
         @keyframes buttonPulse {
             0%, 100% { box-shadow: 0 0 10px rgba(255, 255, 255, 0.2); }
             50% { box-shadow: 0 0 25px rgba(255, 255, 255, 0.6); border-color: rgba(255, 255, 255, 1); }
         }
-        .exit-room-btn:hover { background: #fff; color: #000; transform: translateX(-50%) scale(1.05); }
+        .exit-room-btn:hover {
+            background: #fff;
+            color: #000;
+        }
 
         /* 呼吸遊戲 */
         #breathing-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.92); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 100; cursor: pointer; }
