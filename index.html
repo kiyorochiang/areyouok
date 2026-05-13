@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>你還好嗎？：體感互動敘事版</title>
+    <style>
+        :root {
+            --box-bg: rgba(10, 10, 15, 0.95);
+            --p-teacher: #ff7675;
+            --p-senior: #fab1a0;
+            --p-friend: #74b9ff;
+            --p-family: #55efc4;
+            --p-gf: #fd79a8;
+            --danger: #ff4757;
+        }
+
+        body, html {
+            margin: 0; padding: 0; height: 100%;
+            font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
+            background-color: #000; overflow: hidden; color: #fff;
+            user-select: none;
+        }
+
+        #game-stage {
+            position: relative; width: 100%; max-width: 1000px;
+            height: 100vh; margin: 0 auto;
+            background-size: cover; background-position: center;
+            transition: background-image 1s ease-in-out;
+            display: flex; flex-direction: column; justify-content: flex-end;
+            overflow: hidden;
+        }
+
+        /* 歡迎頁面 */
+        #start-screen {
+            position: absolute; inset: 0; background: radial-gradient(circle, #1e272e 0%, #000 100%);
+            z-index: 300; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;
+        }
+        .title-main { font-size: 3.5rem; letter-spacing: 8px; margin-bottom: 10px; text-shadow: 0 0 20px rgba(255,255,255,0.3); }
+        .title-sub { font-size: 1.2rem; color: #888; margin-bottom: 50px; letter-spacing: 2px; }
+
+        /* 特效動畫 */
+        .shake-light { animation: shakeSoft 0.4s ease-in-out; }
+        .shake-heavy { animation: shakeHard 0.5s ease-in-out; }
+        @keyframes shakeSoft { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(-2px, 2px); } 75% { transform: translate(2px, -2px); } }
+        @keyframes shakeHard { 0%, 100% { transform: translate(0, 0); } 10%, 30%, 50%, 70%, 90% { transform: translate(-8px, 0); } 20%, 40%, 60%, 80% { transform: translate(8px, 0); } }
+
+        /* 房間熱點層 */
+        #hotspots-layer { position: absolute; inset: 0; display: none; z-index: 5; }
+        .hotspot { 
+            position: absolute; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); 
+            cursor: pointer; transition: 0.3s; animation: pulseHint 3.5s infinite ease-in-out;
+        }
+        @keyframes pulseHint { 0%, 100% { background: rgba(255, 255, 255, 0.02); } 50% { background: rgba(255, 255, 255, 0.1); } }
+        .hotspot:hover { background: rgba(255, 255, 255, 0.25) !important; border-color: #fff !important; animation: none; }
+        .hotspot::after { content: attr(data-label); position: absolute; top: -35px; left: 50%; transform: translateX(-50%); font-size: 0.8rem; opacity: 0; transition: 0.3s; background: rgba(0,0,0,0.8); padding: 4px 10px; border-radius: 4px; pointer-events: none; white-space: nowrap;}
+        
+        .exit-room-btn {
+            position: absolute; bottom: 250px; left: 50%; transform: translateX(-50%); 
+            padding: 15px 40px; background: rgba(255, 255, 255, 0.1); 
+            border: 2px solid rgba(255, 255, 255, 0.4); color: #fff; 
+            border-radius: 30px; font-size: 1.1rem; font-weight: bold;
+            cursor: pointer; transition: all 0.3s ease; z-index: 20; 
+            backdrop-filter: blur(5px); animation: buttonPulse 2.5s infinite ease-in-out;
+        }
+        @keyframes buttonPulse {
+            0%, 100% { box-shadow: 0 0 10px rgba(255, 255, 255, 0.2); }
+            50% { box-shadow: 0 0 25px rgba(255, 255, 255, 0.6); border-color: rgba(255, 255, 255, 1); }
+        }
+        .exit-room-btn:hover { background: #fff; color: #000; transform: translateX(-50%) scale(1.05); }
+
+        /* 呼吸遊戲 */
+        #breathing-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.92); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 100; cursor: pointer; }
+        #breath-circle { width: 80px; height: 80px; border: 3px solid #fff; border-radius: 50%; transition: width 3s ease-out, height 3s ease-out; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 25px rgba(255,255,255,0.2); }
+        #breath-circle.holding { background: rgba(85, 239, 196, 0.3); box-shadow: 0 0 60px #55efc4; border-color: #55efc4; }
+
+        /* 對話 UI */
+        #dialogue-container { position: relative; z-index: 10; background: var(--box-bg); margin: 0 20px 20px; padding: 30px 40px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); min-height: 120px; box-shadow: 0 -10px 50px rgba(0,0,0,0.7); cursor: pointer; }
+        #name-label { position: absolute; top: -18px; left: 30px; padding: 5px 25px; font-weight: bold; border-radius: 5px; }
+        #text-body { line-height: 1.8; font-size: 1.15rem; color: #eee; }
+        .keyword { color: var(--danger); font-weight: bold; }
+
+        #choices-box { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+        .choice-btn { padding: 12px 20px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); color: #fff; cursor: pointer; text-align: left; border-radius: 5px; font-size: 1rem; transition: 0.3s; }
+        .choice-btn:hover { background: #fff; color: #000; padding-left: 35px; }
+
+        #ending-overlay { position: absolute; inset: 0; background: #000; display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 200; text-align: center; padding: 40px; }
+        #audio-control { position: absolute; top: 20px; right: 20px; z-index: 100; cursor: pointer; opacity: 0.5; }
+    </style>
+</head>
+<body>
+
+<!-- 歡迎頁面 -->
+<div id="start-screen">
+    <h1 class="title-main">你還好嗎？</h1>
+    <p class="title-sub">一個關於壓力、求助與自省的體感敘事</p>
+    <button class="choice-btn" style="text-align: center; padding: 15px 60px;" onclick="startGame()">進入遊戲</button>
+</div>
+
+<audio id="bgm" loop><source src="bgm.mp3" type="audio/mpeg"></audio>
+
+<div id="game-stage" style="display: none;">
+    <div id="audio-control" onclick="toggleMusic(event)">🎵</div>
+
+    <div id="hotspots-layer">
+        <div class="hotspot" data-label="💻 電腦" style="top: 50%; left: 39%; width: 10%; height: 14%;" onclick="inspect('pc')"></div>
+        <div class="hotspot" data-label="🛏️ 床舖" style="top: 73%; left: 45%; width: 45%; height: 25%;" onclick="inspect('bed')"></div>
+        <div class="hotspot" data-label="🚪 房門" style="top: 5%; left: 0%; width: 10%; height: 90%;" onclick="inspect('door')"></div>
+        <button class="exit-room-btn" onclick="exitRoom()">（結束自省，準備迎接明天）</button>
+    </div>
+
+    <div id="breathing-overlay" onmousedown="startInhale()" onmouseup="startExhale()" ontouchstart="startInhale()" ontouchend="startExhale()">
+        <h2 id="breath-hint">長按圓圈：吸氣</h2>
+        <div id="breath-circle"></div>
+        <p id="breath-count" style="margin-top: 20px; color: #888;">練習進度：0 / 3</p>
+    </div>
+
+    <div id="ending-overlay">
+        <h1 id="end-title" style="font-size: 3rem;"></h1>
+        <div id="end-text" style="max-width: 600px; line-height: 2; color: #eee; font-size: 1.15rem;"></div>
+        <button class="choice-btn" onclick="location.reload()" style="margin: 40px auto; text-align:center;">重啟循環</button>
+    </div>
+
+    <div id="dialogue-container" onclick="handleNext()">
+        <div id="name-label"></div>
+        <div id="text-body"></div>
+        <div id="choices-box" onclick="event.stopPropagation()"></div>
+    </div>
+</div>
+
+<script>
+    let gameState = { stress: 30, currentKey: 'start', mode: 'story', breathStep: 0, musicStarted: false };
+
+    const script = {
+        'start': {
+            name: '指導教授', color: 'var(--p-teacher)',
+            text: '「離截止日期沒幾天了，這份初稿的質量...你自己清楚。再不努力，今年你絕對<span class="keyword">沒辦法畢業</span>。」',
+            bg: 'hallway.jpg', shake: 'heavy',
+            choices: [
+                { text: '「對不起...我會再回去修改。」', next: 'transition_to_lab', stress: 15 },
+                { text: '「老師，我真的已經到極限了。」', next: 'teacher_empathy', stress: 5 }
+            ]
+        },
+        'teacher_empathy': {
+            name: '指導教授', color: 'var(--p-teacher)',
+            text: '教授沈默許久，嘆了口氣：「...你臉色很差。今天先回去吧，休息也是研究的一部分。」',
+            bg: 'hallway.jpg', next: 'transition_to_lab'
+        },
+        'transition_to_lab': {
+            name: '內心獨白', color: '#666',
+            text: '（畫面黑屏閃爍）<br>深夜一點的研究室，不遠處還亮著燈的那個座位。飲水機運轉的聲音在安靜的空間裡顯得很刺耳。',
+            bg: 'black',
+            next: 'senior_scene'
+        },
+        'senior_scene': {
+            name: '學長', color: 'var(--p-senior)',
+            text: '學長轉過頭，看到你還盯著螢幕：<br>「還在弄喔？我剛剛終於把數據跑完了，結果顯著到不行！對了，你那個變項，我上次聽你說還在卡關，現在處理得怎麼樣了？」',
+            bg: 'lab.jpg',
+            choices: [
+                { text: '「沒事啦，我快弄好了，你先回去休息吧。」', next: 'senior_reply_stubborn', stress: 10 },
+                { text: '「其實……我現在連基本的邏輯都對不起來，我好像真的搞砸了。」', next: 'senior_reply_honest', stress: -10 },
+                { text: '（冷冷地回）「不用，我自己的東西我自己會處理。」', next: 'senior_reply_cold', stress: 20 }
+            ]
+        },
+        'senior_reply_stubborn': {
+            name: '學長', color: 'var(--p-senior)',
+            text: '學長看穿了你的逞強，拍了拍你的肩膀：「我也經歷過你現在經歷過的，硬撐一定不是好解方！早點休息吧。」',
+            bg: 'lab.jpg', next: 'night_gf'
+        },
+        'senior_reply_honest': {
+            name: '學長', color: 'var(--p-senior)',
+            text: '學長拉了張椅子坐下，語氣溫和地說：「不要急，我來幫你看看。有時候只是卡在一個小地方，跳出來就通了。」',
+            bg: 'lab.jpg', next: 'night_gf'
+        },
+        'senior_reply_cold': {
+            name: '學長', color: 'var(--p-senior)',
+            text: '學長愣了一下，隨即嘆了口氣，搖搖頭轉回自己的螢幕：「...好吧，那你自己保重。」',
+            bg: 'lab.jpg', next: 'night_gf'
+        },
+        'night_gf': {
+            name: '女朋友', color: 'var(--p-gf)',
+            text: '（走出教學大樓，手機響起）「親愛的，你在哪？我點了宵夜寄到宿舍了。別太累了，好嗎？」',
+            bg: 'hallway2.jpg',
+            choices: [
+                { text: '「謝謝妳，我現在就回去。」', next: 'hallway_transition', stress: -20 },
+                { text: '「對不起，我現在沒心情吃飯...」', next: 'day_friend', stress: 15 }
+            ]
+        },
+        'hallway_transition': {
+            name: '內心獨白', color: '#ccc',
+            text: '路過諮詢室門口。這是我最後的<span class="keyword">求救</span>機會嗎？',
+            bg: 'hallway.jpg',
+            choices: [
+                { text: '推開諮詢室的門。', next: 'breath_start', stress: 0 },
+                { text: '還是算了，繼續回房間。', next: 'enter_room_mode', stress: 10 }
+            ]
+        },
+        'breath_start': {
+            name: '諮商師', color: '#888',
+            text: '「來到這裡已經很勇敢了。來，找回你的呼吸。」',
+            bg: 'hallway.jpg', isBreathGame: true
+        },
+        'day_friend': {
+            name: '朋友 A', color: 'var(--p-friend)',
+            text: '（走在校園路上遇到朋友）「嘿！這週末大家要一起去打球，你也來吧？別老是悶著，腦袋會壞掉的！」',
+            bg: 'HOME.jpg',
+            choices: [
+                { text: '「走吧，我真的需要流點汗抒發一下。」', next: 'friend_empathy', stress: -20 },
+                { text: '「我考慮看看...進度有點趕。」', next: 'friend_consider', stress: 5 },
+                { text: '「你們去就好，我真的沒空。（冷漠）」', next: 'friend_reject', stress: 15 }
+            ]
+        },
+        'friend_empathy': {
+            name: '朋友 A', color: 'var(--p-friend)',
+            text: '「這才對嘛！人生除了論文還有很多好玩的事情。等下打完球去吃頓火鍋，我請客！」',
+            bg: 'HOME.jpg', next: 'enter_room_mode'
+        },
+        'friend_consider': {
+            name: '朋友 A', color: 'var(--p-friend)',
+            text: '「好吧，球場永遠為你留個位置。如果真的撐不住隨時打給我，兄弟都在。」',
+            bg: 'HOME.jpg', next: 'enter_room_mode'
+        },
+        'friend_reject': {
+            name: '朋友 A', color: 'var(--p-friend)',
+            text: '朋友愣了一下，有些尷尬地抓抓頭：「...喔好啦，那你自己保重。有事再說吧。」',
+            bg: 'HOME.jpg', shake: 'light', next: 'enter_room_mode'
+        },
+        'enter_room_mode': {
+            name: '內心獨白', color: '#666',
+            text: '回到房間，反鎖房門。試著點擊房間的物品，聽聽內心的聲音。',
+            bg: 'HOME.jpg', isRoomMode: true
+        },
+        'family_call': {
+            name: '媽媽', color: 'var(--p-family)',
+            text: '（電話響起）「兒子呀，最近壓力很大嗎？不開心就回家。學業再重要，都沒有你的健康重要。」',
+            bg: 'HOME.jpg',
+            choices: [
+                { text: '「媽...我真的好累...」', next: 'family_empathy', stress: -30 },
+                { text: '「我沒事啦，快忙完了。」', next: 'family_mask', stress: 15 },
+                { text: '「不要一直煩我！」', next: 'family_conflict', stress: 25 }
+            ]
+        },
+        'family_empathy': {
+            name: '媽媽', color: 'var(--p-family)',
+            text: '「傻孩子，累了就哭出來。這週末我們先回家吃頓飯，媽媽煮你最愛的紅燒肉。」',
+            bg: 'HOME.jpg', next: 'final_choice'
+        },
+        'family_mask': {
+            name: '媽媽', color: 'var(--p-family)',
+            text: '「...好吧，那你記得吃點有營養的。如果真的撐不住，隨時打給媽媽。」',
+            bg: 'HOME.jpg', next: 'final_choice'
+        },
+        'family_conflict': {
+            name: '媽媽', color: 'var(--p-family)',
+            text: '「對不起...媽媽只是擔心你。你先忙吧...」',
+            bg: 'HOME.jpg', next: 'final_choice'
+        },
+        'final_choice': {
+            name: '內心獨白', color: '#ccc',
+            text: '明天就是截止日。看著桌上的提神飲料，你決定...',
+            bg: 'HOME.jpg',
+            choices: [
+                { text: '關掉螢幕，今晚好好睡一覺。', next: 'END_GOOD', stress: -30 },
+                { text: '再喝一罐，一定要熬完！', next: 'collapse_risk', stress: 30 }
+            ]
+        },
+        'collapse_risk': {
+            name: '警告', color: 'var(--danger)',
+            text: '你的視線開始重疊。心跳快到快要<span class="keyword">爆炸</span>了...',
+            bg: 'HOME.jpg', shake: 'heavy',
+            choices: [{ text: '（...）', next: 'END_BAD', stress: 100 }]
+        }
+    };
+
+    const objectDialogues = {
+        pc: () => (gameState.stress > 60 ? "「滿螢幕的論文資料，我卻連對身邊的人說實話都做不到。」" : "「電腦螢幕亮著。似乎感覺能再寫一點點了。」"),
+        bed: () => (gameState.stress > 70 ? "「好想一直睡下去，床是我唯一的安全區。」" : "「躺在床上，感受到被子的重量。這是目前唯一能放鬆的地方。」"),
+        door: () => (gameState.stress > 50 ? "「門把很冷。只要我不打開它，外面的世界就傷害不到我……但也沒人救得了我。」" : "「門就在那裡。深吸一口氣，或許明天我有勇氣打開它。」")
+    };
+
+    function startGame() {
+        document.getElementById('start-screen').style.display = 'none';
+        document.getElementById('game-stage').style.display = 'flex';
+        tryStartMusic();
+        render('start');
+    }
+
+    function render(key) {
+        if (key.startsWith('END_')) return showEnd(key);
+        gameState.currentKey = key;
+        const sc = script[key];
+        if (sc.isRoomMode) enterRoomMode();
+
+        const stage = document.getElementById('game-stage');
+        stage.classList.remove('shake-light', 'shake-heavy');
+        if (sc.shake === 'heavy') { void stage.offsetWidth; stage.classList.add('shake-heavy'); }
+        if (sc.shake === 'light') { void stage.offsetWidth; stage.classList.add('shake-light'); }
+        
+        if (sc.bg === 'black') { stage.style.backgroundImage = 'none'; stage.style.backgroundColor = 'black'; }
+        else { stage.style.backgroundImage = `url('${sc.bg}')`; }
+
+        document.getElementById('name-label').innerText = sc.name;
+        document.getElementById('name-label').style.backgroundColor = sc.color || '#333';
+        document.getElementById('text-body').innerHTML = sc.text;
+
+        if (sc.isBreathGame) { document.getElementById('breathing-overlay').style.display = 'flex'; gameState.breathStep = 0; }
+
+        const box = document.getElementById('choices-box');
+        box.innerHTML = '';
+        if (sc.choices) {
+            sc.choices.forEach(c => {
+                const btn = document.createElement('button');
+                btn.className = 'choice-btn';
+                btn.innerHTML = c.text;
+                btn.onclick = () => { 
+                    gameState.stress = Math.max(0, Math.min(100, gameState.stress + c.stress));
+                    render(c.next); 
+                };
+                box.appendChild(btn);
+            });
+        }
+    }
+
+    function enterRoomMode() {
+        gameState.mode = 'room';
+        document.getElementById('hotspots-layer').style.display = 'block';
+        const spots = document.querySelectorAll('.hotspot');
+        spots.forEach((s, i) => {
+            setTimeout(() => {
+                s.style.background = "rgba(255, 255, 255, 0.4)";
+                setTimeout(() => { s.style.background = ""; }, 600);
+            }, i * 300); 
+        });
+    }
+
+    function inspect(objKey) {
+        document.getElementById('name-label').innerText = "內心自省";
+        document.getElementById('text-body').innerText = objectDialogues[objKey]();
+        const btn = document.querySelector('.exit-room-btn');
+        btn.style.boxShadow = "0 0 40px #fff";
+        setTimeout(() => { btn.style.boxShadow = ""; }, 500);
+    }
+
+    function exitRoom() {
+        gameState.mode = 'story';
+        document.getElementById('hotspots-layer').style.display = 'none';
+        render('family_call');
+    }
+
+    function tryStartMusic() {
+        const bgm = document.getElementById('bgm');
+        bgm.volume = 0.3;
+        bgm.play().then(() => { gameState.musicStarted = true; }).catch(() => {});
+    }
+
+    function toggleMusic(e) {
+        e.stopPropagation();
+        const bgm = document.getElementById('bgm');
+        if (bgm.paused) bgm.play(); else bgm.pause();
+    }
+
+    function startInhale() {
+        if (gameState.breathStep >= 3) return;
+        const circle = document.getElementById('breath-circle');
+        circle.style.width = '250px'; circle.style.height = '250px';
+        circle.classList.add('holding');
+        document.getElementById('breath-hint').innerText = "吸氣... 保持按住";
+    }
+
+    function startExhale() {
+        if (gameState.breathStep >= 3) return;
+        const circle = document.getElementById('breath-circle');
+        circle.style.width = '80px'; circle.style.height = '80px';
+        circle.classList.remove('holding');
+        document.getElementById('breath-hint').innerText = "吐氣... 慢慢放開";
+        gameState.breathStep++;
+        document.getElementById('breath-count').innerText = `練習進度：${gameState.breathStep} / 3`;
+        if (gameState.breathStep >= 3) {
+            setTimeout(() => {
+                document.getElementById('breathing-overlay').style.display = 'none';
+                gameState.stress -= 40;
+                render('family_call'); // 跳到家人電話
+            }, 1200);
+        }
+    }
+
+    function handleNext() {
+        if (gameState.mode === 'room') return;
+        const sc = script[gameState.currentKey];
+        if (!sc.choices && sc.next) render(sc.next);
+    }
+
+    function showEnd(type) {
+        document.getElementById('ending-overlay').style.display = 'flex';
+        const title = document.getElementById('end-title');
+        const desc = document.getElementById('end-text');
+        
+        if (type === 'END_BAD' || gameState.stress >= 100) {
+            title.innerText = '崩潰邊緣';
+            title.style.color = 'var(--danger)';
+            desc.innerHTML = `
+                <p>你贏了時間，卻輸掉了健康。在那個深夜，你終於倒下了。</p>
+                <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 10px; margin-top: 20px; text-align: left;">
+                    <strong style="color: #ff7675;">💡 給此時此刻的你：</strong><br>
+                    1. <b>立即休息</b>：關掉螢幕，你需要一段不被打擾的睡眠。<br>
+                    2. <b>放下重擔</b>：試著向信賴的人發出「我累了」的訊號。
+                </div>`;
+        } else {
+            title.innerText = '照進裂縫的光';
+            title.style.color = 'var(--p-family)';
+            desc.innerHTML = `
+                <p>你選擇了接受愛與關懷。找回了面對它的力氣。</p>
+                <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 10px; margin-top: 20px; text-align: left;">
+                    <strong style="color: #55efc4;">💡 給做得很好的你：</strong><br>
+                    1. <b>保持連結</b>：記住向他人求助時那種感受。<br>
+                    2. <b>練習呼吸</b>：壓力來臨時，回到圓圈練習，找回節奏。
+                </div>`;
+        }
+    }
+</script>
+</body>
+</html>
