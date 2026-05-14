@@ -31,7 +31,6 @@
             overflow: hidden;
         }
 
-        /* 歡迎頁面 */
         #start-screen {
             position: absolute; inset: 0; background: radial-gradient(circle, #1e272e 0%, #000 100%);
             z-index: 300; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;
@@ -39,13 +38,11 @@
         .title-main { font-size: 3.5rem; letter-spacing: 8px; margin-bottom: 10px; text-shadow: 0 0 20px rgba(255,255,255,0.3); }
         .title-sub { font-size: 1.2rem; color: #888; margin-bottom: 50px; letter-spacing: 2px; }
 
-        /* 特效動畫 */
         .shake-light { animation: shakeSoft 0.4s ease-in-out; }
         .shake-heavy { animation: shakeHard 0.5s ease-in-out; }
         @keyframes shakeSoft { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(-2px, 2px); } 75% { transform: translate(2px, -2px); } }
         @keyframes shakeHard { 0%, 100% { transform: translate(0, 0); } 10%, 30%, 50%, 70%, 90% { transform: translate(-8px, 0); } 20%, 40%, 60%, 80% { transform: translate(8px, 0); } }
 
-        /* 房間熱點層 */
         #hotspots-layer { position: absolute; inset: 0; display: none; z-index: 5; }
         .hotspot { 
             position: absolute; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); 
@@ -55,12 +52,10 @@
         .hotspot:hover { background: rgba(255, 255, 255, 0.25) !important; border-color: #fff !important; animation: none; }
         .hotspot::after { content: attr(data-label); position: absolute; top: -35px; left: 50%; transform: translateX(-50%); font-size: 0.8rem; opacity: 0; transition: 0.3s; background: rgba(0,0,0,0.8); padding: 4px 10px; border-radius: 4px; pointer-events: none; white-space: nowrap;}
 
-        /* 呼吸遊戲 */
         #breathing-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.92); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 100; cursor: pointer; }
         #breath-circle { width: 80px; height: 80px; border: 3px solid #fff; border-radius: 50%; transition: width 3s ease-out, height 3s ease-out; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 25px rgba(255,255,255,0.2); }
         #breath-circle.holding { background: rgba(85, 239, 196, 0.3); box-shadow: 0 0 60px #55efc4; border-color: #55efc4; }
 
-        /* 對話 UI */
         #dialogue-container { position: relative; z-index: 10; background: var(--box-bg); margin: 0 20px 20px; padding: 30px 40px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); min-height: 120px; box-shadow: 0 -10px 50px rgba(0,0,0,0.7); cursor: pointer; }
         #name-label { position: absolute; top: -18px; left: 30px; padding: 5px 25px; font-weight: bold; border-radius: 5px; }
         #text-body { line-height: 1.8; font-size: 1.15rem; color: #eee; }
@@ -117,13 +112,11 @@
 </div>
 
 <script>
-    // --- 資源預載 ---
+    // --- 預載邏輯 ---
     const imageUrls = ['hallway.jpg', 'lab.jpg', 'hallway2.jpg', 'HOME.jpg'];
     let loadedImages = 0;
-
     function preloadImages() {
         const btn = document.getElementById('preload-btn');
-        btn.disabled = true;
         imageUrls.forEach(url => {
             const img = new Image();
             img.src = url;
@@ -134,7 +127,6 @@
                 if (loadedImages === imageUrls.length) {
                     btn.disabled = false;
                     btn.innerText = "進入遊戲";
-                    btn.style.background = "var(--p-family)";
                     btn.onclick = startGame;
                 }
             };
@@ -143,7 +135,7 @@
     }
     window.onload = preloadImages;
 
-    // --- 遊戲狀態與腳本 ---
+    // --- 遊戲狀態 ---
     let gameState = { 
         stress: 30, 
         currentKey: 'start', 
@@ -151,7 +143,8 @@
         breathStep: 0, 
         musicStarted: false,
         returnKey: null,
-        hasVisitedCounseling: false // ✨ 追蹤是否已經去過諮商室一次
+        hasVisitedCounseling: false,
+        hasMetFriend: false // 確保朋友隨機支線只出現一次
     };
 
     const script = {
@@ -164,19 +157,11 @@
                 { text: '「老師，我真的已經到極限了。」', next: 'teacher_empathy', stress: 5 }
             ]
         },
-        'teacher_empathy': {
-            name: '指導教授', color: 'var(--p-teacher)',
-            text: '教授沈默許久，嘆了口氣：「...你臉色很差。今天先回去吧，休息也是研究的一部分。」',
-            bg: 'hallway.jpg', next: 'transition_to_lab'
-        },
-        'transition_to_lab': {
-            name: '內心獨白', color: '#666',
-            text: '（畫面黑屏閃爍）<br>深夜一點的研究室，不遠處還亮著燈的那個座位。飲水機運轉的聲音在安靜的空間裡顯得很刺耳。',
-            bg: 'black', next: 'senior_scene'
-        },
+        'teacher_empathy': { name: '指導教授', color: 'var(--p-teacher)', text: '教授沈默許久，嘆了口氣：「...你臉色很差。今天先回去吧，休息也是研究的一部分。」', bg: 'hallway.jpg', next: 'transition_to_lab' },
+        'transition_to_lab': { name: '內心獨白', color: '#666', text: '（畫面黑屏閃爍）<br>深夜一點的研究室，不遠處還亮著燈的那個座位。飲水機運轉的聲音在安靜的空間裡顯得很刺耳。', bg: 'black', next: 'senior_scene' },
         'senior_scene': {
             name: '學長', color: 'var(--p-senior)',
-            text: '學長轉過頭，看到你還盯著螢幕：<br>「還在弄喔？我剛剛終於把數據跑完了，結果顯著到不行！對了，你那個變項，我上次聽你說還在卡關，現在處理得怎麼樣了？」',
+            text: '學長轉過頭，看到你還盯著螢幕：<br>「還在弄喔？我剛剛終於把數據跑完了，結果顯著到不行！對了，你那個變項，我上次聽你說還卡關，現在處理得怎麼樣了？」',
             bg: 'lab.jpg',
             choices: [
                 { text: '「沒事啦，我快弄好了，你先回去休息吧。」', next: 'senior_reply_stubborn', stress: 10 },
@@ -186,14 +171,14 @@
         },
         'senior_reply_stubborn': { name: '學長', color: 'var(--p-senior)', text: '學長看穿了你的逞強，拍了拍你的肩膀：「我也經歷過你現在經歷過的，硬撐一定不是好解方！早點休息吧。」', bg: 'lab.jpg', next: 'night_gf' },
         'senior_reply_honest': { name: '學長', color: 'var(--p-senior)', text: '學長拉了張椅子坐下，語氣溫和地說：「不要急，我來幫你看看。有時候只是卡在一個小地方，跳出來就通了。」', bg: 'lab.jpg', next: 'night_gf' },
-        'senior_reply_cold': { name: '學長', color: 'var(--p-senior)', text: '學長愣了一下，隨即嘆了口氣，搖搖頭轉回自己的螢幕：「...好吧，那你自己保重。」', bg: 'lab.jpg', next: 'night_gf' },
+        'senior_reply_cold': { name: '學長', color: 'var(--p-senior)', text: '學長愣了一下，搖搖頭轉回自己的螢幕：「...好吧，那你自己保重。」', bg: 'lab.jpg', next: 'night_gf' },
         'night_gf': {
             name: '女朋友', color: 'var(--p-gf)',
             text: '（走出教學大樓，手機響起）「親愛的，你在哪？我點了宵夜寄到宿舍了。別太累了，好嗎？」',
             bg: 'hallway2.jpg',
             choices: [
                 { text: '「謝謝妳，我現在就回去。」', next: 'hallway_transition', stress: -20 },
-                { text: '「對不起，我現在沒心情吃飯...」', next: 'day_friend', stress: 15 }
+                { text: '「對不起，我現在沒心情吃飯...」', next: 'hallway_transition', stress: 15 } // ⚠️ 改為匯流到轉場，開啟隨機可能
             ]
         },
         'day_friend': {
@@ -214,28 +199,18 @@
             text: '路過諮詢室門口。這是我最後的<span class="keyword">求救</span>機會嗎？',
             bg: 'hallway.jpg',
             choices: [
-                { text: '推開諮詢室的門。', next: 'breath_start', stress: 0 },
-                { text: '還是算了，繼續回房間。', next: 'enter_room_mode', stress: 10 }
+                { text: '推開諮詢室門。', next: 'breath_start', stress: 0 },
+                { text: '還是算了，回房間。', next: 'enter_room_mode', stress: 10 }
             ]
         },
         'hallway_transition_heavy': {
             name: '生理警訊', color: 'var(--danger)',
-            text: '心跳快到讓你感到胸口發悶，視線在走廊燈光下顯得模糊。回過神時，你倒在諮商室門口的長椅上。裡面的諮商師推開門：『你還好嗎？進來先找回呼吸吧。』',
+            text: '心跳快到讓你感到胸口發悶，視線在走廊燈光下顯得模糊。回過神時，你倒在諮商室門口的長椅上。諮商師推開門：『你還好嗎？進來先找回呼吸吧。』',
             bg: 'hallway.jpg', shake: 'heavy',
-            choices: [
-                { text: '（推門進去...我真的需要呼吸）', next: 'breath_start', stress: 0 }
-            ]
+            choices: [{ text: '（推門進去...我真的需要呼吸）', next: 'breath_start', stress: 0 }]
         },
-        'breath_start': {
-            name: '諮商師', color: '#888',
-            text: '「來到這裡已經很勇敢了。來，找回你的呼吸。」',
-            bg: 'hallway.jpg', isBreathGame: true
-        },
-        'enter_room_mode': {
-            name: '內心獨白', color: '#666',
-            text: '回到房間，反鎖房門。試著點擊房間的物品，聽聽內心的聲音。',
-            bg: 'HOME.jpg', isRoomMode: true
-        },
+        'breath_start': { name: '諮商師', color: '#888', text: '「來到這裡已經很勇敢了。來，找回你的呼吸。」', bg: 'hallway.jpg', isBreathGame: true },
+        'enter_room_mode': { name: '內心獨白', color: '#666', text: '回到房間，反鎖房門。試著點擊房間的物品，聽聽內心的聲音。', bg: 'HOME.jpg', isRoomMode: true },
         'family_call': {
             name: '媽媽', color: 'var(--p-family)',
             text: '（電話響起）「兒子呀，最近壓力很大嗎？不開心就回家。學業再重要，都沒有你的健康重要。」',
@@ -258,12 +233,7 @@
                 { text: '再喝一罐，一定要熬完！', next: 'collapse_risk', stress: 30 }
             ]
         },
-        'collapse_risk': {
-            name: '警告', color: 'var(--danger)',
-            text: '你的視線開始重疊。心跳快到快要<span class="keyword">爆炸</span>了...',
-            bg: 'HOME.jpg', shake: 'heavy',
-            choices: [{ text: '（...）', next: 'END_BAD', stress: 100 }]
-        }
+        'collapse_risk': { name: '警告', color: 'var(--danger)', text: '你的視線開始重疊。心跳快到快要<span class="keyword">爆炸</span>了...', bg: 'HOME.jpg', shake: 'heavy', choices: [{ text: '（...）', next: 'END_BAD', stress: 100 }] }
     };
 
     const objectDialogues = {
@@ -286,33 +256,41 @@
     function render(key) {
         if (key.startsWith('END_')) return showEnd(key);
 
-        // --- 重大轉場點拦截 (壓力大於75且從未去過諮商室) ---
+        // --- 核心改動：攔截器邏輯 (只在對白結束後的重大轉場觸發) ---
         const majorTransitions = ['night_gf', 'day_friend', 'hallway_transition', 'enter_room_mode'];
-        if (gameState.stress >= 75 && !gameState.hasVisitedCounseling && majorTransitions.includes(key)) {
-            gameState.returnKey = key;
-            key = 'hallway_transition_heavy';
-        }
+        if (majorTransitions.includes(key)) {
+            
+            // 1. 隨機朋友支線 (50% 機率，且尚未遇過)
+            if (key === 'hallway_transition' && !gameState.hasMetFriend && Math.random() > 0.5) {
+                gameState.hasMetFriend = true;
+                key = 'day_friend';
+            }
 
-        // --- 修正：如果已經去過諮商室，路過時自動跳過選擇 ---
-        if (key === 'hallway_transition' && gameState.hasVisitedCounseling) {
-            key = 'enter_room_mode';
+            // 2. 壓力大崩潰 (壓力 >= 75，且從未去過諮商室)
+            // ✨ 如果玩家剛玩完朋友支線準備進房間，且壓力仍大，則觸發崩潰
+            if (gameState.stress >= 75 && !gameState.hasVisitedCounseling) {
+                gameState.hasVisitedCounseling = true;
+                gameState.returnKey = key;
+                key = 'hallway_transition_heavy';
+            }
+            
+            // 3. 確保已諮商過的玩家不再路過諮商室
+            if (key === 'hallway_transition' && gameState.hasVisitedCounseling) {
+                key = 'enter_room_mode';
+            }
         }
 
         gameState.currentKey = key;
         const sc = script[key];
         
-        // 標記諮商室已啟動
-        if (sc.isBreathGame) {
-            gameState.hasVisitedCounseling = true;
-        }
-
+        // 進入呼吸遊戲則標記已諮商
+        if (sc.isBreathGame) gameState.hasVisitedCounseling = true;
         if (sc.isRoomMode) enterRoomMode();
 
         const stage = document.getElementById('game-stage');
         stage.classList.remove('shake-light', 'shake-heavy');
         if (sc.shake === 'heavy') { void stage.offsetWidth; stage.classList.add('shake-heavy'); }
         if (sc.shake === 'light') { void stage.offsetWidth; stage.classList.add('shake-light'); }
-        
         if (sc.bg === 'black') { stage.style.backgroundImage = 'none'; stage.style.backgroundColor = 'black'; }
         else { stage.style.backgroundImage = `url('${sc.bg}')`; }
 
@@ -346,7 +324,7 @@
         gameState.mode = 'room';
         document.getElementById('hotspots-layer').style.display = 'block';
         document.getElementById('name-label').innerText = "內心獨白";
-        document.getElementById('text-body').innerText = "回到房間，反鎖房門。試著點擊房間的物品，聽聽內心的聲音。";
+        document.getElementById('text-body').innerText = "試著點擊房間的物品。";
         const box = document.getElementById('choices-box');
         box.innerHTML = '';
         const exitBtn = document.createElement('button');
@@ -406,7 +384,7 @@
         if (gameState.breathStep >= 3) {
             setTimeout(() => {
                 document.getElementById('breathing-overlay').style.display = 'none';
-                gameState.stress -= 30; // 減壓改為30
+                gameState.stress -= 30; // 減壓固定為 30
                 if (gameState.returnKey) {
                     let next = gameState.returnKey;
                     gameState.returnKey = null;
