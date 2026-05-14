@@ -184,7 +184,7 @@
         'day_friend': {
             name: '朋友 A', color: 'var(--p-friend)',
             text: '（走在校園路上遇到朋友）「嘿！這週末大家要一起去打球，你也來吧？別老是悶著，腦袋會壞掉的！」',
-            bg: 'HOME.jpg',
+            bg: 'hallway2.jpg',
             choices: [
                 { text: '「走吧，我真的需要流點汗抒發一下。」', next: 'friend_empathy', stress: -20 },
                 { text: '「我考慮看看...進度有點趕。」', next: 'friend_consider', stress: 5 },
@@ -210,7 +210,7 @@
             choices: [{ text: '（推門進去...我真的需要呼吸）', next: 'breath_start', stress: 0 }]
         },
         'breath_start': { name: '諮商師', color: '#888', text: '「來到這裡已經很勇敢了。來，找回你的呼吸。」', bg: 'hallway.jpg', isBreathGame: true },
-        'enter_room_mode': { name: '內心獨白', color: '#666', text: '回到房間，反鎖房門。試著點擊房間的物品，聽聽內心的聲音。', bg: 'HOME.jpg', isRoomMode: true },
+        'enter_room_mode': { name: '內心獨白', color: '#666', text: '試著點擊房間的物品，聽聽內心的聲音。', bg: 'HOME.jpg', isRoomMode: true },
         'family_call': {
             name: '媽媽', color: 'var(--p-family)',
             text: '（電話響起）「兒子呀，最近壓力很大嗎？不開心就回家。學業再重要，都沒有你的健康重要。」',
